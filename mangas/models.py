@@ -1,0 +1,35 @@
+from django.db import models
+
+class Serie (models.Model):
+    title = models.CharField(max_length=100)
+    first_published = models.DateTimeField()
+    last_published = models.DateTimeField(blank=True, null=True)
+    description = models.CharField()
+
+    def __str__(self):
+        return self.title
+    
+    def is_finished(self):
+        return self.last_published != ""
+
+
+class Author (models.Model):
+    name = models.CharField(max_length=100)
+    birth_day = models.DateTimeField()
+    death_date = models.DateTimeField(blank=True, null=True)
+    mangas = models.ManyToManyField(Serie, related_name="author")
+
+    def __str__(self):
+        return self.name
+    
+    def is_alive(self):
+        return self.death_date != ""
+
+class Chapter (models.Model):
+    number = models.IntegerField()
+    name = models.CharField(max_length=100)
+    manga = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="chapters")
+    first_published = models.DateTimeField()
+
+    def __str__(self):
+        return f"Chapter N°{self.number} {self.name} from {self.manga}"
