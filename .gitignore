@@ -1,16 +1,16 @@
-# ignore django settings
+# ignore django things
 */settings.py
+db.sqlite3
 
 # ignore migrations
 */migrations
 
 # ignore pycache
-*/__pycache__
-
+__pycache__
 
 # ignore env
-/.venv
+.venv
 
 # things to ignore for the csv importations
-/csv
+csv
 variables.py
