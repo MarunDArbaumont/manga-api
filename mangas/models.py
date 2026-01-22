@@ -1,10 +1,20 @@
 from django.db import models
 
 class Serie (models.Model):
+    SHONEN = "SH"
+    SEINEN = "SE"
+    SHOJO = "SHO"
+    MANGA_GENRE_CHOICES = {
+        SHONEN: "shonen",
+        SEINEN: "seinen",
+        SHOJO: "shojo",
+    }
     title = models.CharField(max_length=100)
     first_published = models.DateTimeField()
     last_published = models.DateTimeField(blank=True, null=True)
     description = models.CharField()
+    cover = models.ImageField(blank=True, null=True, upload_to="uploads/%Y/%m/%d/")
+    genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
 
     def __str__(self):
         return self.title
