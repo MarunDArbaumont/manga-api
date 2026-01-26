@@ -30,16 +30,19 @@ def main():
     with psycopg.connect(f"dbname={DB_NAME} user={USER}") as conn:
         with conn.cursor() as cur:
             for file in only_csv:
-                print(f"{file} is being processed")
-                with open(f"./csv/{file}", "r") as csvfile:
-                    csv_reader = csv.DictReader(csvfile, delimiter=";")
-                    for row in csv_reader:
-                        db_table = TABLE_PREFIX + file[:-4]
-                        first = next(iter(row))
-                        cur.execute(
-                            sql_injection(row, db_table)
-                        )
-                        print(f"{row[first]} has been added to the author table")
+                try:
+                    print(f"{file} is being processed")
+                    with open(f"./csv/{file}", "r") as csvfile:
+                        csv_reader = csv.DictReader(csvfile, delimiter=";")
+                        for row in csv_reader:
+                            db_table = TABLE_PREFIX + file[:-4]
+                            first = next(iter(row))
+                            cur.execute(
+                                sql_injection(row, db_table)
+                            )
+                            print(f"{row[first]} has been added to the author table")
+                except:
+                    print("Either the filename doesn't match table name or you are lame")
             conn.commit()
             print("\n Import completed successfully")
 

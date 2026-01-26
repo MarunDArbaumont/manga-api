@@ -4,7 +4,7 @@ from .models import Serie, Author, Chapter
 class SerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Serie
-        fields = ['id', 'title', 'first_published', 'last_published', 'description']
+        fields = ['id', 'title', 'first_published', 'last_published', 'description', 'cover','genre']
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:

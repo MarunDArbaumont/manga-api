@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import SerieList, AuthorList, ChapterList
+from .views import SerieView, AuthorView, ChapterView
 
 urlpatterns = [
-    path('series/', SerieList.as_view(), name='series-list'),
-    path('authors/', AuthorList.as_view(), name='authors-list'),
-    path('chapters/', ChapterList.as_view(), name='chapters-list'),
+    path('series', SerieView.as_view(), name='series-list'),
+    path('authors', AuthorView.as_view(), name='authors-list'),
+    path('chapters', ChapterView.as_view(), name='chapters-list'),
 ]

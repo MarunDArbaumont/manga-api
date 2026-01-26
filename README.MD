@@ -10,8 +10,8 @@ Gets all the mangas by serie and the content (description, review, rating)
 ## By chapter **Done**
 url = /api/chapters
 Gets the content of the chapter (description, review, rating)
-## CSV import **In progress**
-Create a csv dir in the root of the project, here you can add csv files for each table (auhtor, serie, chapter, serie-author)
+## CSV import **Done for small files**
+Create a csv dir in the root of the project, add csv files for each table. The csv file name should have the same name as the table name minus the prefix
 
 ## Filter system **To do**
 ### Filter by genre **To do**
