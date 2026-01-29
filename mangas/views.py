@@ -11,9 +11,10 @@ class SerieView(APIView):
             "title"
         )
         ALLOWED_SEMANTIC_FILTER = (
-            "ongoing"
+            "ongoing",
+            "order_by"
         )
-        queryset = Serie.objects.all().order_by("title")
+        queryset = Serie.objects.all()
         request_params = request.query_params
         if len(request_params) == 0:
             
@@ -25,8 +26,15 @@ class SerieView(APIView):
                 if k == "ongoing" and v:
                     queryset = queryset.filter(last_published__isnull=True)
                     continue
+                if k == "order_by" and v.endswith("_desc"):
+                    ordered = "-" + v.replace("_desc", "")
+                    queryset = queryset.order_by(ordered)
+                    continue
+                elif k == "order_by" and v.endswith("_asc"):
+                    queryset = queryset.order_by(v.replace("_asc", ""))
+                    continue
             if k not in ALLOWED_DIRECT_FIELD_FILTER:
-                raise ValidationError("please enter a valid filter")
+                raise ValidationError(f"please enter a query params from these lists: {ALLOWED_DIRECT_FIELD_FILTER}, {ALLOWED_SEMANTIC_FILTER}")
             filters[k] = v
         queryset = queryset.filter(**filters)
         serializer = SerieSerializer(queryset, many=True)
