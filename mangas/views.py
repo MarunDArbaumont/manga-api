@@ -6,23 +6,29 @@ from .serializers import SerieSerializer, ChapterSerializer, AuthorSerializer
 
 class SerieView(APIView):
     def get(self, request):
-        ALLOWED_FILTER = (
+        ALLOWED_DIRECT_FIELD_FILTER = (
             "genre",
             "title"
         )
+        ALLOWED_SEMANTIC_FILTER = (
+            "ongoing"
+        )
+        queryset = Serie.objects.all().order_by("title")
         request_params = request.query_params
         if len(request_params) == 0:
-            queryset = Serie.objects.all().order_by("title")
+            
             serializer = SerieSerializer(queryset, many=True)
             return Response(serializer.data)
         filters = {}
         for k, v in request_params.items():
-            if k not in ALLOWED_FILTER:
+            if k in ALLOWED_SEMANTIC_FILTER:
+                if k == "ongoing" and v:
+                    queryset = queryset.filter(last_published__isnull=True)
+                    continue
+            if k not in ALLOWED_DIRECT_FIELD_FILTER:
                 raise ValidationError("please enter a valid filter")
             filters[k] = v
-                
-        print(f"This is the filter we want in the filter method: {filters}")
-        queryset = Serie.objects.filter(**filters).order_by("title")
+        queryset = queryset.filter(**filters)
         serializer = SerieSerializer(queryset, many=True)
         return Response(serializer.data)
         
@@ -35,6 +41,20 @@ class AuthorView(APIView):
 
 class ChapterView(APIView):
     def get(self, request):
-        queryset = Chapter.objects.all().order_by("manga_id")
+        ALLOWED_DIRECT_FIELD_FILTER = (
+            "manga",
+            "number"
+        )
+        request_params = request.query_params
+        if len(request_params) == 0:
+            queryset = Chapter.objects.all().order_by("manga_id")
+            serializer = ChapterSerializer(queryset, many=True)
+            return Response(serializer.data)
+        filters = {}
+        for k, v in request_params.items():
+            if k not in ALLOWED_DIRECT_FIELD_FILTER:
+                raise ValidationError("please enter valid filter")
+            filters[k] = v
+        queryset = Chapter.objects.filter(**filters)
         serializer = ChapterSerializer(queryset, many=True)
         return Response(serializer.data)
