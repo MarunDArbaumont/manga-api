@@ -15,12 +15,12 @@ Create a csv dir in the root of the project, add csv files for each table. The c
 
 ## Get all chapters of given manga
 
-## Filter system **Done**
+## Filter system **In progress** create a filter helper function
 ### Filter by genre **Done**
 filter series by genre (shonen, seinen, shojo, action, fantasy...)
 example url filter ==> api/series?genre=shonen
 
-## Order system **To do**
+## Order system **In progress** create an order heper function
 ### Order by alphebetic order **To do**
 for series and authors
 ### Order by publish date **To do**

@@ -1,14 +1,11 @@
 from django.db import models
 
 class Serie (models.Model):
-    SHONEN = "SH"
-    SEINEN = "SE"
-    SHOJO = "SHO"
-    MANGA_GENRE_CHOICES = {
-        SHONEN: "shonen",
-        SEINEN: "seinen",
-        SHOJO: "shojo",
-    }
+    MANGA_GENRE_CHOICES = (
+        ("shonen", "shonen"),
+        ("seinen", "seinen"),
+        ("shojo", "shojo"),
+    )
     title = models.CharField(max_length=100)
     first_published = models.DateTimeField()
     last_published = models.DateTimeField(blank=True, null=True)
