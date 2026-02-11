@@ -2,6 +2,16 @@ import csv
 import os
 import psycopg
 from variables import DB_NAME, USER, TABLE_PREFIX
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+
+
 
 def sql_injection(row, table_name):
     injection = f"INSERT INTO {table_name} ("
@@ -27,7 +37,7 @@ def main():
     dir_list = os.listdir(csv_dir_path)
     only_csv = filter(lambda x : x.endswith(".csv"), dir_list)
     print(f"Files in csv : {only_csv}")
-    with psycopg.connect(f"dbname={DB_NAME} user={USER}") as conn:
+    with psycopg.connect(f"dbname={os.getenv("DB_NAME")} user={os.getenv("DB_USER")}") as conn:
         with conn.cursor() as cur:
             for file in only_csv:
                 try:
@@ -35,7 +45,7 @@ def main():
                     with open(f"./csv/{file}", "r") as csvfile:
                         csv_reader = csv.DictReader(csvfile, delimiter=";")
                         for row in csv_reader:
-                            db_table = TABLE_PREFIX + file[:-4]
+                            db_table = os.getenv("TABLE_PREFIX") + file[:-4]
                             first = next(iter(row))
                             cur.execute(
                                 sql_injection(row, db_table)

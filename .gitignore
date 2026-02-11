@@ -1,6 +1,8 @@
 */settings.py
 db.sqlite3
 
+.env
+
 __pycache__
 
 .venv
