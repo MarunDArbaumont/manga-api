@@ -9,9 +9,9 @@ class SerieSerializer(serializers.ModelSerializer):
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['name', 'birth_day', 'death_date']
+        fields = ['id', 'name', 'birth_day', 'death_date']
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
-        fields = ['number', 'name', 'first_published', 'manga_id']
+        fields = ['id', 'number', 'name', 'first_published', 'manga_id']
