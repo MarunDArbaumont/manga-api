@@ -4,12 +4,12 @@ from .models import Serie, Author, Chapter
 class SerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Serie
-        fields = ['id', 'title', 'first_published', 'last_published', 'description', 'cover','genre']
+        fields = ['id', 'title', 'author', 'first_published', 'last_published', 'description', 'cover','genre']
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['id', 'name', 'birth_day', 'death_date']
+        fields = ['id', 'name', 'birth_day', 'death_date', 'mangas']
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
