@@ -10,7 +10,7 @@ class Serie (models.Model):
     first_published = models.DateTimeField()
     last_published = models.DateTimeField(blank=True, null=True)
     description = models.CharField()
-    cover = models.ImageField(blank=True, null=True, upload_to="uploads/%Y/%m/%d/")
+    cover = models.ImageField(blank=True, null=True, upload_to="series/%Y/%m/%d/")
     genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
 
     def __str__(self):
@@ -24,6 +24,7 @@ class Author (models.Model):
     name = models.CharField(max_length=100)
     birth_day = models.DateTimeField()
     death_date = models.DateTimeField(blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
     mangas = models.ManyToManyField(Serie, related_name="author")
 
     def __str__(self):

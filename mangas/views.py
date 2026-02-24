@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework import filters
 from .models import Serie, Author, Chapter
-from .serializers import SerieSerializer, ChapterSerializer, AuthorSerializer
+from .serializers import SerieSerializer, ChapterSerializer, AuthorSerializer, SingleSerieSerializer
 from .filters import SerieFilter, AuthorFilter, ChapterFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -14,8 +14,8 @@ class SerieView(generics.ListAPIView):
     ordering = ["title"]
 
 class SerieByIdView(generics.RetrieveAPIView):
-    queryset = Serie.objects.all()
-    serializer_class = SerieSerializer
+    queryset = Serie.objects.prefetch_related("chapters")
+    serializer_class = SingleSerieSerializer
 
 
 class AuthorView(generics.ListAPIView):

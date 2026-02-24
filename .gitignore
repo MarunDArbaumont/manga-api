@@ -11,4 +11,5 @@ __pycache__
 csv
 variables.py
 
-/img
+/media/authors/*
+/media/series/*

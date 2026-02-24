@@ -4,14 +4,20 @@ from .models import Serie, Author, Chapter
 class SerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Serie
-        fields = ['id', 'title', 'author', 'first_published', 'last_published', 'description', 'cover','genre']
+        fields = "__all__"
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['id', 'name', 'birth_day', 'death_date', 'mangas']
+        fields = "__all__"
 
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
-        fields = ['id', 'number', 'name', 'first_published', 'manga_id']
+        fields = "__all__"
+
+class SingleSerieSerializer(serializers.ModelSerializer):
+    chapters = ChapterSerializer(many=True, read_only=True)
+    class Meta:
+        model = Serie
+        fields = "__all__"
