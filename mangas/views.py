@@ -1,12 +1,8 @@
 from rest_framework import generics, filters
-from django.contrib.auth.models import User
 from .models import Serie, Author, Chapter
 from .serializers import SerieSerializer, ChapterSerializer, AuthorSerializer, SingleSerieSerializer
 from .filters import SerieFilter, AuthorFilter, ChapterFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
 
 class SerieView(generics.ListCreateAPIView):
     queryset = Serie.objects.all()

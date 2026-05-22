@@ -2,8 +2,6 @@ from django.urls import path
 from .views import SerieView, AuthorView, ChapterView, SerieByIdView, AuthorByIdView, ChapterByIdView
 
 urlpatterns = [
-    # path('users', UserView.as_view(), name='users-list'),
-    # path('me', CurrentUserView.as_view(), name='current-user'),
     path('series', SerieView.as_view(), name='series-list'),
     path("series/<int:pk>/", SerieByIdView.as_view()),
     path('authors', AuthorView.as_view(), name='authors-list'),
