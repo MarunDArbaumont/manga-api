@@ -23,3 +23,9 @@ class ProfileView(generics.ListCreateAPIView):
     filterset_class = ProfileFilter
     serializer_class = ProfileSerializer
 
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        username = request.user.username
+        user_id = request.user.id
+        return Response({"id": user_id, "username": username})
