@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
+from mangas.serializers import ChapterSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,6 +19,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["user", "bio", "mangas", "user_id"]
+
+class SingleProfileSerializer(serializers.ModelSerializer):
+    mangas = ChapterSerializer(many=True, read_only=True)
+    class Meta:
+        model = Profile
+        fields = "__all__"
 
 class SingleUserSerializer(serializers.ModelSerializer):
     class Meta:

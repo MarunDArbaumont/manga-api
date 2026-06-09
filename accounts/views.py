@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, filters
 from rest_framework.views import APIView
-from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer
+from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer
 from .models import Profile
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,7 +11,6 @@ from .filters import ProfileFilter
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = [IsAuthenticated]
 
 class UserByIdView(generics.RetrieveAPIView):
     queryset = User.objects
@@ -22,6 +21,11 @@ class ProfileView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend,filters.OrderingFilter]
     filterset_class = ProfileFilter
     serializer_class = ProfileSerializer
+
+class ProfileByIdView(generics.RetrieveAPIView):
+    lookup_field = "user"
+    queryset = Profile.objects.prefetch_related("mangas")
+    serializer_class = SingleProfileSerializer
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
