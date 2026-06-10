@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, filters
 from rest_framework.views import APIView
-from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer
-from .models import Profile
+from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer
+from .models import Profile, Review
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -33,3 +33,7 @@ class CurrentUserView(APIView):
         username = request.user.username
         user_id = request.user.id
         return Response({"id": user_id, "username": username})
+
+class ReviewView(generics.ListCreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
