@@ -6,7 +6,7 @@ from .models import Profile, Review
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .filters import ProfileFilter
+from .filters import ProfileFilter, ReviewFilter
 
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -36,4 +36,6 @@ class CurrentUserView(APIView):
 
 class ReviewView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
+    ilter_backends = [DjangoFilterBackend,filters.OrderingFilter]
+    filterset_class = ReviewFilter
     serializer_class = ReviewSerializer

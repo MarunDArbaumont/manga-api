@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["user", "bio", "mangas", "user_id"]
+        fields = ["user", "bio", "mangas"]
 
 class SingleProfileSerializer(serializers.ModelSerializer):
     mangas = ChapterSerializer(many=True, read_only=True)
