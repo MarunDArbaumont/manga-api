@@ -12,6 +12,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ChapterSerializer(serializers.ModelSerializer):
+    manga = SerieSerializer(read_only=True)
     class Meta:
         model = Chapter
         fields = "__all__"

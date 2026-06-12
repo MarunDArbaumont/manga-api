@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, filters
 from rest_framework.views import APIView
-from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer
+from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer
 from .models import Profile, Review
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,7 +18,7 @@ class UserByIdView(generics.RetrieveAPIView):
 
 class ProfileView(generics.ListCreateAPIView):
     queryset = Profile.objects.all()
-    filter_backends = [DjangoFilterBackend,filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ProfileFilter
     serializer_class = ProfileSerializer
 
@@ -36,6 +36,18 @@ class CurrentUserView(APIView):
 
 class ReviewView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
-    ilter_backends = [DjangoFilterBackend,filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ReviewFilter
-    serializer_class = ReviewSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ReviewCreateSerializer
+        return ReviewSerializer
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return []
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

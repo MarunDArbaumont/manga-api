@@ -32,6 +32,13 @@ class SingleUserSerializer(serializers.ModelSerializer):
         fields = ["id", "username"]
 
 class ReviewSerializer(serializers.ModelSerializer):
+    chapter = ChapterSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Review
         fields = "__all__"
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ["rating", "description", "chapter"]

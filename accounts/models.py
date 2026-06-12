@@ -18,7 +18,10 @@ class Review(models.Model):
         (4, "4"),
         (5, "5"),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True, choices=REVIEW_RATING_CHOICES)
     description = models.CharField(blank=True, null=True, max_length=255)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"This review belongs to {self.user} for chapter {self.chapter}"
