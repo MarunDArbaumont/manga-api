@@ -3,7 +3,7 @@ from mangas.models import Chapter
 from django.contrib.auth.models import User
 
 class Profile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     bio = models.CharField(blank=True, null=True, max_length=255)
     mangas = models.ManyToManyField(Chapter, "collection")
 

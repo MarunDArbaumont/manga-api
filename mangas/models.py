@@ -25,7 +25,7 @@ class Author (models.Model):
     birth_day = models.DateTimeField()
     death_date = models.DateTimeField(blank=True, null=True)
     image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
-    mangas = models.ManyToManyField(Serie, related_name="author")
+    mangas = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="authors", blank=True, null=True)
 
     def __str__(self):
         return self.name
