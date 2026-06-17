@@ -33,29 +33,40 @@ class CurrentUserView(APIView):
         user_id = request.user.id
         return Response({"id": user_id, "username": username})
 
-class ReviewView(generics.ListCreateAPIView):
+class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ReviewFilter
 
     def get_serializer_class(self):
-        if self.request.method == "POST":
+        if self.action == "create":
             return ReviewCreateSerializer
         return ReviewSerializer
 
     def get_permissions(self):
-        if self.request.method == "POST":
-            return [IsAuthenticated]
+        if self.action == "create":
+            return [IsAuthenticated()]
         return []
-    
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    def remove_review(self, request, pk=None):
+        review_id = request.data.get("review")
+
+        review = get_object_or_404(Review, pk=review_id)
+        if review.user.id != request.user.id:
+            return Response({"error": "not your review"}, status=403)
+        review.delete()
+        return Response({"message": "Removed review"})
+    
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["delete"], permission_classes=[IsAuthenticated])
     def add_manga(self, request, pk=None):
         profile = request.user.profile
 
@@ -67,7 +78,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile.mangas.add(manga)
         return Response({"message": f"Added {manga.name} to collection"})
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["delete"], permission_classes=[IsAuthenticated])
     def remove_manga(self, request, pk=None):
         profile = request.user.profile
 
