@@ -22,6 +22,7 @@ class Review(models.Model):
     rating = models.IntegerField(blank=True, null=True, choices=REVIEW_RATING_CHOICES)
     description = models.CharField(blank=True, null=True, max_length=255)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    is_edited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"This review belongs to {self.user} for chapter {self.chapter}"

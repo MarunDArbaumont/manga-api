@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, filters, viewsets
+from rest_framework import generics, filters, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer
+from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer, ReviewEditSerializer
 from .models import Profile, Review
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProfileFilter, ReviewFilter
@@ -37,30 +37,23 @@ class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ReviewFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.action == "create":
             return ReviewCreateSerializer
+        if self.action in ["update", "partial_update"]:
+            return ReviewEditSerializer
         return ReviewSerializer
-
-    def get_permissions(self):
-        if self.action == "create":
-            return [IsAuthenticated()]
-        return []
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
-    def remove_review(self, request, pk=None):
-        review_id = request.data.get("review")
+    def get_queryset(self):
+        if self.action in ["update", "partial_update", "destroy"]:
+            return Review.objects.filter(user=self.request.user)
+        return Review.objects.all()
 
-        review = get_object_or_404(Review, pk=review_id)
-        if review.user.id != request.user.id:
-            return Response({"error": "not your review"}, status=403)
-        review.delete()
-        return Response({"message": "Removed review"})
-    
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
