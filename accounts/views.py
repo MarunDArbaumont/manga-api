@@ -49,6 +49,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def perform_update(self, serializer):
+        serializer.save(is_edited=True)
+
     def get_queryset(self):
         if self.action in ["update", "partial_update", "destroy"]:
             return Review.objects.filter(user=self.request.user)
@@ -58,6 +61,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     @action(detail=False, methods=["delete"], permission_classes=[IsAuthenticated])
     def add_manga(self, request, pk=None):
