@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     bio = models.CharField(blank=True, null=True, max_length=255)
+    profile_picture = models.ImageField(blank=True, null=True, upload_to="profile_picture/")
     mangas = models.ManyToManyField(Chapter, "collection")
 
     def __str__(self):
