@@ -40,6 +40,16 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = "__all__"
 
+    def get_likes(self, obj):
+        return obj.reactions.filter(
+            reaction=ReviewReaction.LIKE
+        ).count()
+
+    def get_dislikes(self, obj):
+        return obj.reactions.filter(
+            reaction=ReviewReaction.DISLIKE
+        ).count()
+
 class ReviewReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReviewReaction
