@@ -36,19 +36,30 @@ class Review(models.Model):
         return f"This review belongs to {self.user} for chapter {self.chapter}"
 
 class ReviewReaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    LIKE = "like"
+    DISLIKE = "dislike"
+
+    REACTION_CHOICES = [
+        (LIKE, "Like"),
+        (DISLIKE, "Dislike"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name="reactions",
     )
+
     reaction = models.CharField(
         max_length=10,
-        choices=[
-            ("like", "Like"),
-            ("dislike", "Dislike"),
-        ],
+        choices=REACTION_CHOICES,
     )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
