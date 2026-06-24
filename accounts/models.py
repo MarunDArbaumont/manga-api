@@ -21,9 +21,38 @@ class Review(models.Model):
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True, choices=REVIEW_RATING_CHOICES)
-    description = models.CharField(blank=True, null=True, max_length=255)
+    description = models.TextField(blank=True, null=True)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
     is_edited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"This review belongs to {self.user} for chapter {self.chapter}"
+
+class ReviewReaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name="reactions",
+    )
+    reaction = models.CharField(
+        max_length=10,
+        choices=[
+            ("like", "Like"),
+            ("dislike", "Dislike"),
+        ],
+    )
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "review"],
+                name="unique_review_reaction",
+            )
+        ]

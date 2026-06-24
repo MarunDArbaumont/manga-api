@@ -3,7 +3,7 @@ from rest_framework import generics, filters, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer, ReviewEditSerializer
-from .models import Profile, Review
+from .models import Profile, Review, ReviewReaction
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -56,6 +56,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if self.action in ["update", "partial_update", "destroy"]:
             return Review.objects.filter(user=self.request.user)
         return Review.objects.all()
+    
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk=None):
+        review = self.get_object()
+        reaction, _ = ReviewReaction.objects.update_or_create(
+            user=request.user,
+            review=review,
+            defaults={"reaction": ReviewReaction.LIKE},
+        )
+        return Response({"message": "Liked"})
+    
+    @action(detail=True, methods=["delete"])
+    def reaction(self, request, pk=None):
+        review = self.get_object()
+        ReviewReaction.objects.filter(
+            user=request.user,
+            review=review,
+        ).delete()
+        return Response({"message": "Reaction removed"})
+    
+    @action(detail=True, methods=["post"])
+    def dislike(self, request, pk=None):
+        review = self.get_object()
+        reaction, _ = ReviewReaction.objects.update_or_create(
+            user=request.user,
+            review=review,
+            defaults={"reaction": ReviewReaction.DISLIKE},
+        )
+        return Response({"message": "Disliked"})
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -63,7 +92,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @action(detail=False, methods=["delete"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def add_manga(self, request, pk=None):
         profile = request.user.profile
 

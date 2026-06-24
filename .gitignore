@@ -1,4 +1,3 @@
-*/settings.py
 db.sqlite3
 
 .env
@@ -9,7 +8,5 @@ __pycache__
 
 
 csv
-variables.py
 
-/media/authors/*
-/media/series/*
+/media/*
