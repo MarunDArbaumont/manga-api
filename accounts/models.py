@@ -22,7 +22,7 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(blank=True, null=True, choices=REVIEW_RATING_CHOICES)
     description = models.TextField(blank=True, null=True)
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, blank=True, null=True)
     parent = models.ForeignKey(
         "self",
         null=True,

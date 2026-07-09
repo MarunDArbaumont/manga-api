@@ -11,9 +11,15 @@ from .filters import ProfileFilter, ReviewFilter
 from mangas.models import Chapter
 from django.shortcuts import get_object_or_404
 
+import logging
+
+logger = logging.getLogger("accounts")
+
+
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    logger.debug("This is cool debug message")
 
 class UserByIdView(generics.RetrieveAPIView):
     queryset = User.objects

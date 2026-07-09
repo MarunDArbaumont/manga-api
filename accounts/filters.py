@@ -10,4 +10,4 @@ class ProfileFilter(django_filters.FilterSet):
 class ReviewFilter(django_filters.FilterSet):
     class Meta:
         model = Review
-        fields = ["user", "chapter"]
+        fields = ["user", "chapter", "parent"]
