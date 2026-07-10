@@ -1,5 +1,17 @@
 from django.db import models
 
+class Author (models.Model):
+    name = models.CharField(max_length=100)
+    birth_day = models.DateTimeField()
+    death_date = models.DateTimeField(blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
+
+    def __str__(self):
+        return self.name
+    
+    def is_alive(self):
+        return self.death_date != ""
+
 class Serie (models.Model):
     MANGA_GENRE_CHOICES = (
         ("shonen", "shonen"),
@@ -12,26 +24,13 @@ class Serie (models.Model):
     description = models.CharField()
     cover = models.ImageField(blank=True, null=True, upload_to="series/%Y/%m/%d/")
     genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
+    authors = models.ManyToManyField(Author, related_name="mangas")
 
     def __str__(self):
         return self.title
     
     def is_finished(self):
         return self.last_published != ""
-
-
-class Author (models.Model):
-    name = models.CharField(max_length=100)
-    birth_day = models.DateTimeField()
-    death_date = models.DateTimeField(blank=True, null=True)
-    image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
-    mangas = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="authors", blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-    
-    def is_alive(self):
-        return self.death_date != ""
 
 class Chapter (models.Model):
     number = models.IntegerField()

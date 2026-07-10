@@ -4,9 +4,10 @@ from .models import Profile, Review, ReviewReaction
 from mangas.serializers import ChapterSerializer
 
 class UserSerializer(serializers.ModelSerializer):
+    picture = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ["id", "username", "password", "email"]
+        fields = ["id", "username", "password", "email", "picture"]
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
@@ -14,6 +15,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])
         user.save()
         return user
+
+    def get_picture(self, obj):
+        if hasattr(obj, "profile") and obj.profile.profile_picture:
+            return obj.profile.profile_picture.url
+        return None
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,3 +82,8 @@ class ReviewEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ["rating", "description"]
+
+class ProfilePictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields =["profile_picture"] 

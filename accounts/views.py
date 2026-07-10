@@ -19,7 +19,6 @@ logger = logging.getLogger("accounts")
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    logger.debug("This is cool debug message")
 
 class UserByIdView(generics.RetrieveAPIView):
     queryset = User.objects
@@ -54,6 +53,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        logger.debug(f"{self.request.user} has created a new review")
 
     def perform_update(self, serializer):
         serializer.save(is_edited=True)

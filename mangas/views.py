@@ -1,4 +1,4 @@
-from rest_framework import generics, filters
+from rest_framework import generics, filters, viewsets
 from .models import Serie, Author, Chapter
 from .serializers import SerieSerializer, ChapterSerializer, AuthorSerializer, SingleSerieSerializer
 from .filters import SerieFilter, AuthorFilter, ChapterFilter
@@ -29,13 +29,9 @@ class AuthorByIdView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
 
-class ChapterView(generics.ListCreateAPIView):
+class ChapterViewSet(viewsets.ModelViewSet):
     queryset = Chapter.objects.all()
     serializer_class = ChapterSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ChapterFilter
     ordering_fields =["first_published", "manga"]
-
-class ChapterByIdView(generics.RetrieveAPIView):
-    queryset = Chapter.objects.all()
-    serializer_class = ChapterSerializer
