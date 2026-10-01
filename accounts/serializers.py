@@ -8,7 +8,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "password", "email", "picture"]
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "picture": {"use_url": False}
+            }
 
     def create(self, validated_data):
         user = User(username=validated_data["username"], email=validated_data["email"])
@@ -24,13 +27,19 @@ class UserSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["user", "bio", "mangas", "profile_picture"]
+        fields = ['id', 'mangas', 'bio', 'profile_picture', 'user']
+        extra_kwargs = {
+            "profile_picture": {"use_url": False}
+        }
 
 class SingleProfileSerializer(serializers.ModelSerializer):
     mangas = ChapterSerializer(many=True, read_only=True)
     class Meta:
         model = Profile
         fields = "__all__"
+        extra_kwargs = {
+            "profile_picture": {"use_url": False}
+        }
 
 class SingleUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,4 +95,7 @@ class ReviewEditSerializer(serializers.ModelSerializer):
 class ProfilePictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields =["profile_picture"] 
+        fields =["profile_picture"]
+        extra_kwargs = {
+            "profile_picture": {"use_url": False}
+        }

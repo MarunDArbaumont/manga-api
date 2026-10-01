@@ -7,12 +7,19 @@ class SerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Serie
         fields = "__all__"
+        extra_kwargs = {
+            "cover": {"use_url": False}
+        }
 
 class AuthorSerializer(serializers.ModelSerializer):
     series = SerieSerializer(many=True, read_only=True)
     class Meta:
         model = Author
         fields = "__all__"
+        extra_kwargs = {
+            "image": {"use_url": False}
+        }
+
     def get_series(self, obj):
         series = Serie.objects.filter(authors=obj)
         return SerieSerializer(series, many=True).data
@@ -43,3 +50,6 @@ class SingleSerieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Serie
         fields = "__all__"
+        extra_kwargs = {
+            "cover": {"use_url": False}
+        }
