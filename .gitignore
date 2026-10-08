@@ -12,3 +12,6 @@ csv
 /media/*
 
 /logs
+
+compose.yaml
+Dockerfile

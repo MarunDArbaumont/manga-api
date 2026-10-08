@@ -1,6 +1,7 @@
 from django.db import models
 from mangas.models import Chapter
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
@@ -31,6 +32,23 @@ class Review(models.Model):
         related_name="comments",
     )
     is_edited = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(chapter__isnull=False, parent__isnull=True)
+                    | Q(chapter__isnull=True, parent__isnull=False)
+                ),
+                name="review_chapter_xor_parent",
+            ),
+            models.CheckConstraint(
+                condition=Q(parent__isnull=True) | Q(rating__isnull=True),
+                name="review_reply_has_no_rating",
+            ),
+        ]
 
     def __str__(self):
         return f"This review belongs to {self.user} for chapter {self.chapter}"

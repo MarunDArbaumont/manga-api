@@ -1,13 +1,19 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, filters, viewsets, mixins
+from django.contrib.auth import authenticate, login, logout
+from django.db.models import Count, Prefetch, Q
+from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework import generics, filters, viewsets, mixins, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer, ReviewEditSerializer
 from .models import Profile, Review, ReviewReaction
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProfileFilter, ReviewFilter
+from .permissions import IsOwnerOrReadOnly, SignupThrottle
 from mangas.models import Chapter
 from django.shortcuts import get_object_or_404
 
@@ -15,10 +21,57 @@ import logging
 
 logger = logging.getLogger("accounts")
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class CsrfView(APIView):
+    """Pose le cookie csrftoken. À appeler une fois au chargement de l'app."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"csrfToken": get_token(request)})
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user = authenticate(
+            request,
+            username=request.data.get("username"),
+            password=request.data.get("password"),
+        )
+        if user is None:
+            return Response(
+                {"detail": "Identifiants invalides"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        login(request, user)  # crée la session + pose le cookie sessionid
+        return Response({"id": user.id, "username": user.username})
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        u = request.user
+        return Response({"id": u.id, "username": u.username})
 
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
+    throttle_classes = [SignupThrottle]
     serializer_class = UserSerializer
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [AllowAny()]
+        return [IsAuthenticatedOrReadOnly()]
 
 class UserByIdView(generics.RetrieveAPIView):
     queryset = User.objects
@@ -30,13 +83,6 @@ class ProfileByIdView(generics.RetrieveAPIView):
     def get_object(self):
         user_id = self.kwargs["user_id"]
         return get_object_or_404(Profile, user_id=user_id)
-
-class CurrentUserView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request):
-        username = request.user.username
-        user_id = request.user.id
-        return Response({"id": user_id, "username": username})
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -59,9 +105,27 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(is_edited=True)
 
     def get_queryset(self):
-        if self.action in ["update", "partial_update", "destroy"]:
-            return Review.objects.filter(user=self.request.user)
-        return Review.objects.all()
+        user = self.request.user
+
+        qs = Review.objects.select_related("user__profile", "chapter").annotate(
+            likes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.LIKE)),
+            dislikes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.DISLIKE)),
+        )
+
+        if user.is_authenticated:
+            qs = qs.prefetch_related(
+                Prefetch(
+                    "reactions",
+                    queryset=ReviewReaction.objects.filter(user=user),
+                    to_attr="my_reactions",
+                )
+            )
+            if self.action in ["update", "partial_update", "destroy"]:
+                qs = qs.filter(user=user)
+        elif self.action in ["update", "partial_update", "destroy"]:
+            return Review.objects.none()
+
+        return qs
     
     @action(detail=True, methods=["post"])
     def like(self, request, pk=None):
@@ -93,10 +157,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response({"message": "Disliked"})
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def add_manga(self, request, pk=None):
