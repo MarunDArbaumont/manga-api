@@ -53,3 +53,9 @@ class SingleSerieSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "cover": {"use_url": False}
         }
+        
+    def get_average_rating(self, obj):
+        return (
+            Review.objects.filter(chapter=obj)
+            .aggregate(avg=Avg("rating"))
+        )["avg"]
