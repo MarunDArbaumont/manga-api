@@ -11,14 +11,30 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from dotenv import load_dotenv
 from pathlib import Path
-from datetime import timedelta
+
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
+
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return list(default)
+    return [item.strip() for item in value.split(",") if item.strip()]
+
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -26,13 +42,23 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y%1#lso@8j#^88h9m@laxetns(e_def82y4t)12zexf49h&tyy'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-local-development-only"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is False."
+        )
+
+ALLOWED_HOSTS = env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    ["localhost", "127.0.0.1", "testserver"],
+)
 
 
 # Application definition
@@ -87,17 +113,26 @@ WSGI_APPLICATION = 'manga_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("POSTGRES_DB", "app"),
+#         "USER": os.environ.get("POSTGRES_USER", "app"),
+#         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+#         "HOST": os.environ.get("DB_HOST", "database"),
+#         "PORT": os.environ.get("DB_PORT", "5432"),
+#     }
+# }
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "app"),
-        "USER": os.environ.get("POSTGRES_USER", "app"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST", "database"),
+        "NAME": os.environ.get("DB_NAME") or os.environ.get("POSTGRES_DB", "app"),
+        "USER": os.environ.get("DB_USER") or os.environ.get("POSTGRES_USER", "app"),
+        "PASSWORD": os.environ.get("DB_PASSWORD") or os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
-
 
 
 # Password validation
@@ -152,6 +187,7 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
+    "COERCE_DECIMAL_TO_STRING": False,
 }
 
 # Media
@@ -159,12 +195,16 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Allowed frontend origin local
-CORS_ALLOWED_ORIGINS = []
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
+DEFAULT_FRONTEND_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
 ]
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", DEFAULT_FRONTEND_ORIGINS)
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    CORS_ALLOWED_ORIGINS,
+)
 
 # Session
 SESSION_COOKIE_HTTPONLY = True
@@ -172,37 +212,58 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 3 # 3 days
 SESSION_SAVE_EVERY_REQUEST = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+SECURE_COOKIES = env_bool("DJANGO_SECURE_COOKIES", not DEBUG)
+SESSION_COOKIE_SECURE = SECURE_COOKIES
+CSRF_COOKIE_SECURE = SECURE_COOKIES
 
-# Logging 
+# Logging
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-      "formatters": {
+    "formatters": {
         "standard": {
             "format": "[{asctime}] {levelname} {name}: {message}",
             "style": "{",
         },
     },
     "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
         "file": {
             "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "logs" / "debug.log",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_DIR / "debug.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 3,
             "formatter": "standard",
         },
     },
     "loggers": {
         "accounts": {
-            "handlers": ["file"],
+            "handlers": ["file", "console"],
             "level": "DEBUG",
-            "propagate": True,
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["file", "console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
 
 # Elasticsearch
 ELASTICSEARCH_DSL = {
-    'default': {'hosts': os.environ.get('ELASTICSEARCH_HOST')},
+    "default": {
+        "hosts": [
+            os.environ.get("ELASTICSEARCH_HOST", "http://localhost:9200")
+        ],
+    },
 }
+ELASTICSEARCH_DSL_AUTOSYNC = env_bool("ELASTICSEARCH_DSL_AUTOSYNC", False)

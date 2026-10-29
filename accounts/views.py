@@ -14,7 +14,9 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProfileFilter, ReviewFilter
 from .permissions import IsOwnerOrReadOnly, SignupThrottle
+from .throttles import LoginThrottle
 from mangas.models import Chapter
+from mangas.querysets import chapters_with_ratings
 from django.shortcuts import get_object_or_404
 
 import logging
@@ -32,6 +34,7 @@ class CsrfView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginThrottle]
 
     def post(self, request):
         user = authenticate(
@@ -78,7 +81,9 @@ class UserByIdView(generics.RetrieveAPIView):
     serializer_class = SingleUserSerializer
 
 class ProfileByIdView(generics.RetrieveAPIView):
-    queryset = Profile.objects.prefetch_related("mangas")
+    queryset = Profile.objects.prefetch_related(
+        Prefetch("mangas", queryset=chapters_with_ratings())
+    )
     serializer_class = SingleProfileSerializer
     def get_object(self):
         user_id = self.kwargs["user_id"]
@@ -107,7 +112,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        qs = Review.objects.select_related("user__profile", "chapter").annotate(
+        qs = Review.objects.select_related(
+            "user__profile", "chapter__manga"
+        ).prefetch_related("chapter__manga__authors").annotate(
             likes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.LIKE)),
             dislikes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.DISLIKE)),
         )

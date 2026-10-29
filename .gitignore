@@ -1,4 +1,5 @@
 db.sqlite3
+db.json
 
 .env
 
@@ -11,7 +12,9 @@ csv
 
 /media/*
 
-/logs
+logs/
+/staticfiles
 
-compose.yaml
-Dockerfile
+.pytest_cache
+.ruff_cache
+.coverage

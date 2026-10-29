@@ -33,10 +33,18 @@ class Serie (models.Model):
         return self.last_published != ""
 
 class Chapter (models.Model):
-    number = models.IntegerField()
+    number = models.DecimalField(max_digits=5, decimal_places=1)
     name = models.CharField(max_length=100)
     manga = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="chapters")
     first_published = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["manga", "number"],
+                name="unique_chapter_number_per_manga",
+            ),
+        ]
 
     def __str__(self):
         return f"Chapter N°{self.number} {self.name} from {self.manga}"
