@@ -42,6 +42,13 @@ class ProfileSerializer(serializers.ModelSerializer):
             "profile_picture": {"use_url": False}
         }
 
+    def validate_profile_picture(self, value):
+        if value.content_type not in ["image/png", "image/jpeg", "image/webp"]:
+            raise ValidationError("Profile picture must be PNG, JPEG, or WebP format")
+        if value.size > 5 * 1024 * 1024:
+            raise ValidationError("Profile picture must be less than 5MB")
+        return value
+
 class SingleProfileSerializer(serializers.ModelSerializer):
     mangas = ChapterSerializer(many=True, read_only=True)
     class Meta:

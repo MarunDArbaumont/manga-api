@@ -2,6 +2,7 @@ from django.db import models
 from mangas.models import Chapter
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.utils import timezone
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)

@@ -15,13 +15,26 @@ from .serializers import (
 from django_filters.rest_framework import DjangoFilterBackend
 
 class SerieView(generics.ListCreateAPIView):
-    queryset = Serie.objects.prefetch_related("authors")
     serializer_class = SerieSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = SerieFilter
-    ordering_fields = ["title", "first_published"]
+    ordering_fields = ["title", "first_published", "average_rating"]
     ordering = ["title"]
+
+    def get_queryset(self):
+        chapters = chapters_with_ratings().order_by("number")
+        return (
+            Serie.objects
+            .annotate(
+                average_rating=Avg("chapters__review__rating"),
+                count_rating=Count("chapters__review__rating"),
+            )
+            .prefetch_related(
+                Prefetch("chapters", queryset=chapters),
+                "authors__mangas__authors",
+            )
+        )
 
 class SerieByIdView(generics.RetrieveAPIView):
     serializer_class = SingleSerieSerializer
@@ -60,7 +73,7 @@ class ChapterViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ChapterFilter
-    ordering_fields =["first_published", "manga"]
+    ordering_fields =["first_published", "manga", "average_rating"]
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

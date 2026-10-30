@@ -4,12 +4,21 @@ from accounts.models import Review
 from django.db.models import Avg, Count
 
 class SerieSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
     class Meta:
         model = Serie
         fields = "__all__"
         extra_kwargs = {
             "cover": {"use_url": False}
         }
+
+    def get_average_rating(self, obj):
+        if hasattr(obj, "average_rating"):
+            return obj.average_rating
+        return (
+            Review.objects.filter(chapter__manga=obj)
+            .aggregate(avg=Avg("rating"))
+        )["avg"]
 
 class AuthorSerializer(serializers.ModelSerializer):
     series = SerieSerializer(many=True, read_only=True, source="mangas")

@@ -29,7 +29,7 @@ urlpatterns = [
     path("api/", include("mangas.urls")),
     path("api/", include("accounts.urls")),
     path('admin/', admin.site.urls),
-    path('health/', health_check, name='health_check')
+    path('health/', health_check, name='health_check'),
 ]
 
 if settings.DEBUG:
