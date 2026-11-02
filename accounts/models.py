@@ -49,6 +49,11 @@ class Review(models.Model):
                 condition=Q(parent__isnull=True) | Q(rating__isnull=True),
                 name="review_reply_has_no_rating",
             ),
+            models.UniqueConstraint(
+                fields=["user", "chapter"],
+                condition=Q(parent__isnull=True),
+                name="unique_review_per_user_chapter",
+            )
         ]
 
     def __str__(self):

@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, filters, viewsets, mixins, status
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from .serializers import ProfileSerializer, UserSerializer, SingleUserSerializer, SingleProfileSerializer, ReviewSerializer, ReviewCreateSerializer, ReviewEditSerializer
 from .models import Profile, Review, ReviewReaction
@@ -18,6 +19,7 @@ from .throttles import LoginThrottle
 from mangas.models import Chapter
 from mangas.querysets import chapters_with_ratings
 from django.shortcuts import get_object_or_404
+from django.db.utils import IntegrityError
 
 import logging
 
@@ -94,6 +96,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ReviewFilter
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError as e:
+            raise ValidationError(str(e))
+        
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except IntegrityError as e:
+            raise ValidationError(str(e))
 
     def get_serializer_class(self):
         if self.action == "create":

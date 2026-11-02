@@ -24,3 +24,4 @@ django-cors-headers
 django-elasticsearch-dsl
 elasticsearch>=8,<9
 redis>=5.0.0
+django-redis>=5.4.0

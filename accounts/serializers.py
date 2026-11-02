@@ -37,10 +37,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'mangas', 'bio', 'profile_picture', 'user']
-        read_only_fields = ["mangas"]
+        read_only_fields = ["mangas", "user"]
         extra_kwargs = {
             "profile_picture": {"use_url": False}
         }
+
+    def validate(self, attrs):
+        if 'user' in attrs:
+            raise serializers.ValidationError(
+                {"user": "You cannot change the user associated with this profile."}
+            )
+        return attrs
 
     def validate_profile_picture(self, value):
         if value.content_type not in ["image/png", "image/jpeg", "image/webp"]:
@@ -106,13 +113,20 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
     
     def validate(self, attrs):
         parent = attrs.get("parent")
+        chapter = attrs.get("chapter")
         rating = attrs.get("rating")
+
+        if parent is not None and chapter is not None:
+            raise serializers.ValidationError("Reviews can't have a parent and a chapter")
 
         if parent is None and rating is None:
             raise serializers.ValidationError("Reviews require a rating")
 
         if parent is not None and rating is not None:
             raise serializers.ValidationError("Comments cannot have a rating")
+
+        if parent is None and chapter is None:
+            raise serializers.ValidationError("Reviews require a chapter")
         
         return attrs
 
@@ -120,6 +134,18 @@ class ReviewEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ["rating", "description"]
+    
+    def validate(self, attrs):
+        rating = attrs.get("rating")
+        parent = self.instance.parent if self.instance else None
+
+        if rating is not None and parent is not None:
+            raise serializers.ValidationError("A reply shouldn't have a rating")
+
+        if parent is None and rating is None and "rating" in attrs:
+            raise serializers.ValidationError("Top-level reviews must have a rating")
+
+        return attrs
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     class Meta:
