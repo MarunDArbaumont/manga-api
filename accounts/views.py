@@ -133,6 +133,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         qs = Review.objects.select_related(
             "user__profile", "chapter__manga"
+        ).annotate(
+        chapter_avg_rating=Avg("chapter__review__rating"),
+        chapter_rating_count=Count("chapter__review__rating"),
         ).prefetch_related("chapter__manga__authors").annotate(
             likes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.LIKE)),
             dislikes_count=Count("reactions", filter=Q(reactions__reaction=ReviewReaction.DISLIKE)),

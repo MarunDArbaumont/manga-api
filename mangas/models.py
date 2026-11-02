@@ -13,7 +13,7 @@ class Author (models.Model):
         return self.name
     
     def is_alive(self):
-        return self.death_date != ""
+        return self.death_date is None
 
 class Serie (models.Model):
     MANGA_GENRE_CHOICES = (
@@ -36,7 +36,7 @@ class Serie (models.Model):
         return self.title
     
     def is_finished(self):
-        return self.last_published != ""
+        return self.last_published is not None
 
 class Chapter (models.Model):
     number = models.DecimalField(max_digits=5, decimal_places=1)
