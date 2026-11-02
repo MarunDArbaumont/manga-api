@@ -45,6 +45,7 @@ class Chapter (models.Model):
                 name="unique_chapter_number_per_manga",
             ),
         ]
+        ordering = ["manga", "number"]
 
     def __str__(self):
         return f"Chapter N°{self.number} {self.name} from {self.manga}"

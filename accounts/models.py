@@ -10,6 +10,9 @@ class Profile(models.Model):
     profile_picture = models.ImageField(blank=True, null=True, upload_to="profile_picture/")
     mangas = models.ManyToManyField(Chapter, "collection")
 
+    class Meta:
+        ordering = ["id"]
+
     def __str__(self):
         return f"This profile belongs to {self.user}"
 

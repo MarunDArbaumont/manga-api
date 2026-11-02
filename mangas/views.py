@@ -68,7 +68,7 @@ class AuthorByIdView(generics.RetrieveAPIView):
     serializer_class = AuthorSerializer
 
 class ChapterViewSet(viewsets.ModelViewSet):
-    queryset = chapters_with_ratings()
+    queryset = chapters_with_ratings().order_by("manga", "number")
     serializer_class = ChapterSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
