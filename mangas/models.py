@@ -6,6 +6,9 @@ class Author (models.Model):
     death_date = models.DateTimeField(blank=True, null=True)
     image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
 
+    class Meta:
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
     
@@ -25,6 +28,9 @@ class Serie (models.Model):
     cover = models.ImageField(blank=True, null=True, upload_to="series/%Y/%m/%d/")
     genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
     authors = models.ManyToManyField(Author, related_name="mangas")
+
+    class Meta:
+        ordering = ["title"]
 
     def __str__(self):
         return self.title
