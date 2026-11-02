@@ -32,7 +32,7 @@ class SerieView(generics.ListCreateAPIView):
             )
             .prefetch_related(
                 Prefetch("chapters", queryset=chapters),
-                "authors__mangas__authors",
+                Prefetch("authors"),
             )
             .order_by(["title"])
         )

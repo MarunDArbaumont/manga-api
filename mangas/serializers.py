@@ -30,6 +30,14 @@ class AuthorSerializer(serializers.ModelSerializer):
             "image": {"use_url": False}
         }
 
+class CompactAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ["id", "name", "image"]
+        extra_kwargs = {
+            "image": {"use_url": False}
+        }
+
 class ChapterSerializer(serializers.ModelSerializer):
     manga = SerieSerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()
@@ -64,7 +72,7 @@ class ChapterWriteSerializer(serializers.ModelSerializer):
 
 class SingleSerieSerializer(serializers.ModelSerializer):
     chapters = ChapterSerializer(many=True, read_only=True)
-    authors = AuthorSerializer(many=True, read_only=True)
+    authors = CompactAuthorSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     count_rating = serializers.SerializerMethodField()
 

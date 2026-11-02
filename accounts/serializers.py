@@ -71,7 +71,7 @@ class SingleUserSerializer(serializers.ModelSerializer):
         fields = ["id", "username"]
 
 class ReviewSerializer(serializers.ModelSerializer):
-    chapter = ChapterSerializer(read_only=True)
+    chapter = chapters_with_ratings()
     user = UserSerializer(read_only=True)
     likes = serializers.SerializerMethodField()
     dislikes = serializers.SerializerMethodField()

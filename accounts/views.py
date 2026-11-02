@@ -69,7 +69,7 @@ class MeView(APIView):
         return Response({"id": u.id, "username": u.username})
 
 class UserView(generics.ListCreateAPIView):
-    queryset = User.objects.all().order_by["id"]
+    queryset = User.objects.all().order_by("id")
     throttle_classes = [SignupThrottle]
     serializer_class = UserSerializer
 
@@ -77,6 +77,11 @@ class UserView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             return [AllowAny()]
         return [IsAuthenticatedOrReadOnly()]
+    
+    def get_throttles(self):
+        if self.request.method == "POST":
+            return [SignupThrottle()]
+        return []
 
 class UserByIdView(generics.RetrieveAPIView):
     queryset = User.objects
@@ -183,7 +188,7 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Profile.objects.all().order_by["id"]
+    queryset = Profile.objects.all().order_by("id")
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
