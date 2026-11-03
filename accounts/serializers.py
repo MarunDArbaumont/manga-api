@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import password_validation
 from .models import Profile, Review, ReviewReaction
 from mangas.serializers import ChapterSerializer
+from mangas.querysets import chapters_with_ratings
 
 class UserSerializer(serializers.ModelSerializer):
     picture = serializers.SerializerMethodField()
@@ -12,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "password", "email", "picture"]
         extra_kwargs = {
             "password": {"write_only": True},
-            "email": {"write_only": True, "required": True},
+            "email": {"required": True},
         }
 
     def validate_password(self, value):
@@ -21,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
-            return serializers.ValidationError("This email is already used.")
+            raise serializers.ValidationError("This email is already used.")
         return value
 
     def create(self, validated_data):

@@ -178,3 +178,164 @@ class ChapterSerializerTests(TestCase):
     def test_read_serializer_keeps_manga_read_only(self):
         self.assertTrue(ChapterSerializer().fields["manga"].read_only)
         self.assertFalse(ChapterWriteSerializer().fields["manga"].read_only)
+
+
+class FilterOrderingTests(APITestCase):
+    """Tests for manga/series filters and ordering."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        
+        User.objects.all().delete()
+        Author.objects.all().delete()
+        Serie.objects.all().delete()
+        Chapter.objects.all().delete()
+        
+        # Create test data
+        self.user1 = User.objects.create_user(username="user1", email="user1@test.com", password="pass123")
+        
+        # Create authors
+        self.author1 = Author.objects.create(
+            name="Author A",
+            birth_day="2000-01-01",
+        )
+        self.author2 = Author.objects.create(
+            name="Author B",
+            birth_day="2000-02-01",
+        )
+        
+        # Create series with different properties
+        self.serie1 = Serie.objects.create(
+            title="Ongoing Serie",
+            first_published="2020-01-01",
+            last_published=None,  # Not finished
+            genre="shonen"
+        )
+        self.serie2 = Serie.objects.create(
+            title="Finished Serie",
+            first_published="2019-01-01",
+            last_published="2020-01-01",  # Finished
+            genre="seinen"
+        )
+        self.serie3 = Serie.objects.create(
+            title="Another Ongoing",
+            first_published="2021-01-01",
+            last_published=None,
+            genre="shonen"
+        )
+        
+        # Add authors to series
+        self.serie1.authors.add(self.author1)
+        self.serie2.authors.add(self.author2)
+        self.serie3.authors.add(self.author1, self.author2)
+        
+        # Create chapters
+        self.chapter1 = Chapter.objects.create(
+            number=1,
+            name="Chapter 1",
+            manga=self.serie1,
+            first_published="2020-01-01"
+        )
+        self.chapter2 = Chapter.objects.create(
+            number=2,
+            name="Chapter 2",
+            manga=self.serie1,
+            first_published="2020-02-01"
+        )
+        self.chapter3 = Chapter.objects.create(
+            number=1,
+            name="Chapter 1",
+            manga=self.serie2,
+            first_published="2019-01-01"
+        )
+
+    def test_filter_series_by_ongoing(self):
+        """
+        Test filtering series by ongoing status.
+        - GET /api/series/?ongoing=true should return only series without last_published
+        - GET /api/series/?ongoing=false should return only series with last_published
+        """
+        # Filter for ongoing series
+        response = self.client.get("/api/series/?ongoing=true")
+        self.assertEqual(response.status_code, 200)
+        ongoing_series = response.data["results"]
+        self.assertEqual(len(ongoing_series), 2)  # serie1 and serie3
+        
+        # Verify all returned series are ongoing
+        for serie in ongoing_series:
+            self.assertIsNone(serie["last_published"])
+
+    def test_filter_series_by_genre(self):
+        """
+        Test filtering series by genre.
+        - GET /api/series/?genre=shonen should return only shonen series
+        - GET /api/series/?genre=seinen should return only seinen series
+        """
+        # Filter for shonen series
+        response = self.client.get("/api/series/?genre=shonen")
+        self.assertEqual(response.status_code, 200)
+        shonen_series = response.data["results"]
+        self.assertEqual(len(shonen_series), 2)  # serie1 and serie3
+        
+        for serie in shonen_series:
+            self.assertEqual(serie["genre"], "shonen")
+
+    def test_filter_series_by_title(self):
+        """
+        Test filtering series by title (exact match).
+        - GET /api/series/?title=Ongoing Serie should return the series with that exact title
+        """
+        # Filter for series with exact title match
+        response = self.client.get("/api/series/?title=Ongoing Serie")
+        self.assertEqual(response.status_code, 200)
+        matching_series = response.data["results"]
+        self.assertGreater(len(matching_series), 0)
+        
+        for serie in matching_series:
+            self.assertEqual(serie["title"], "Ongoing Serie")
+
+    def test_ordering_series_by_title(self):
+        """
+        Test ordering series by title.
+        - GET /api/series/?ordering=title should return series ordered alphabetically by title
+        - GET /api/series/?ordering=-title should return series in reverse alphabetical order
+        """
+        # Order by title ascending
+        response = self.client.get("/api/series/", {"ordering": "title"})
+        self.assertEqual(response.status_code, 200)
+        titles_asc = [s["title"] for s in response.data["results"]]
+        self.assertEqual(titles_asc, sorted(titles_asc))
+        
+        # Order by title descending
+        response = self.client.get("/api/series/", {"ordering": "-title"})
+        self.assertEqual(response.status_code, 200)
+        titles_desc = [s["title"] for s in response.data["results"]]
+        self.assertEqual(titles_desc, sorted(titles_desc, reverse=True))
+
+    def test_ordering_chapters_by_number(self):
+        """
+        Test ordering chapters by number within a series.
+        - GET /api/chapters/?manga=<id>&ordering=number should return chapters in ascending order
+        """
+        # Order chapters by number
+        response = self.client.get(f"/api/chapters/", {"manga": self.serie1.id, "ordering": "number"})
+        self.assertEqual(response.status_code, 200)
+        chapters = response.data["results"]
+        numbers = [c["number"] for c in chapters]
+        self.assertEqual(numbers, sorted(numbers))
+
+    def test_chapter_uniqueness_constraint(self):
+        """
+        Test that chapter numbers are unique per manga.
+        - Creating a duplicate chapter number for the same manga should fail
+        """
+        from django.db.utils import IntegrityError
+        
+        # Try to create a duplicate chapter number for serie1
+        with self.assertRaises(IntegrityError):
+            Chapter.objects.create(
+                number=1,  # Duplicate of chapter1
+                name="Duplicate Chapter",
+                manga=self.serie1,
+                first_published="2020-03-01"
+            )

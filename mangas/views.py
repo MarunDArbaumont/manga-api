@@ -34,7 +34,7 @@ class SerieView(generics.ListCreateAPIView):
                 Prefetch("chapters", queryset=chapters),
                 Prefetch("authors"),
             )
-            .order_by(["title"])
+            .order_by("title")
         )
 
 class SerieByIdView(generics.RetrieveAPIView):
@@ -56,7 +56,7 @@ class SerieByIdView(generics.RetrieveAPIView):
 
 
 class AuthorView(generics.ListCreateAPIView):
-    queryset = Author.objects.prefetch_related("mangas__authors").order_by(["name"])
+    queryset = Author.objects.prefetch_related("mangas__authors").order_by("name")
     serializer_class = AuthorSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
