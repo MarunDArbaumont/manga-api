@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
 from .models import Profile, Review, ReviewReaction
 from mangas.serializers import ChapterSerializer
 from mangas.querysets import chapters_with_ratings
