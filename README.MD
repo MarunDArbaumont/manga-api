@@ -1,3 +1,4 @@
+![Test badge](https://github.com/MarunDArbaumont/manga-api/actions/workflows/ci.yml/badge.svg)
 # API of mangas
 The API is connected to an DB
 

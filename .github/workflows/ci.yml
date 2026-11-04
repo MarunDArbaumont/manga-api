@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   test:
@@ -41,7 +43,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -62,8 +64,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Linting with flake8
+      - name: Install linting tools
+        run: |
+          pip install flake8
+
+      - name: Run flake8 linting
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      # Security vulnerability check
+      - name: Check for vulnerabilities
+        run: |
+          pip install safety
+          safety check --full-report
+
+      # Django checks
       - name: Run Django checks
         run: python manage.py check
 
+      # Run tests
       - name: Run tests
-        run: python manage.py test --verbosity 2
+        run: python manage.py test --verbosity=2
