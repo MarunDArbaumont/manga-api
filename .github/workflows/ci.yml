@@ -78,7 +78,7 @@ jobs:
       - name: Check for vulnerabilities
         run: |
           pip install safety
-          safety check --full-report
+          safety scan --full-report
 
       # Django checks
       - name: Run Django checks
