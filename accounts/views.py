@@ -217,5 +217,5 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
 
         manga = get_object_or_404(Chapter, pk=manga_id)
         profile.mangas.remove(manga)
-        return Response({"message": f"Removed {manga.name} to collection"})
+        return Response({"message": f"Removed {manga.name} from collection"})
     

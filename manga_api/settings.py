@@ -36,8 +36,6 @@ def env_list(name, default):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
@@ -170,7 +168,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

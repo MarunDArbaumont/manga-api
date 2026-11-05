@@ -20,7 +20,6 @@ sqlparse==0.6.1
 urllib3==2.8.0
 wcwidth==0.8.2
 gunicorn
-django-cors-headers
 django-elasticsearch-dsl
 elasticsearch>=8,<9
 redis>=5.0.0

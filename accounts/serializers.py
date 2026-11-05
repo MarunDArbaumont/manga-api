@@ -103,11 +103,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             return r.reaction if r else None
         return mine[0].reaction if mine else None
 
-class ReviewReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReviewReaction
-        fields = "__all__"
-
 class ReviewCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
