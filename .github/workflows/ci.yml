@@ -28,6 +28,20 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.4.3
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd curl -f http://localhost:9200
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       DJANGO_SECRET_KEY: ci-only-not-a-production-secret-key-0123456789
       DJANGO_DEBUG: "False"
@@ -40,6 +54,7 @@ jobs:
       POSTGRES_PASSWORD: postgres
       DB_HOST: 127.0.0.1
       DB_PORT: 5432
+      ELASTICSEARCH_HOST: http://localhost:9200
       ELASTICSEARCH_DSL_AUTOSYNC: "False"
 
     steps:
@@ -65,20 +80,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Linting with flake8
       - name: Install linting tools
         run: |
           pip install flake8
+
+      - name: Wait for services
+        run: |
+          # Wait for PostgreSQL
+          while ! pg_isready -h localhost -p 5432 -U app -d app; do
+            sleep 1
+          done
+          # Wait for Elasticsearch
+          while ! curl -f http://localhost:9200; do
+            sleep 1
+          done
 
       - name: Run flake8 linting
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      # Django checks
       - name: Run Django checks
         run: python manage.py check
 
-      # Run tests
       - name: Run tests
         run: python manage.py test --verbosity=2
