@@ -38,7 +38,7 @@ jobs:
         ports:
           - 9200:9200
         options: >-
-          --health-cmd curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s
+          --health-cmd "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 15
@@ -106,10 +106,10 @@ jobs:
             sleep 2
           done
 
-       - name: Verify services
-         run: |
-           pg_isready -h localhost -p 5432 -U app -d app
-           curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow
+      - name: Verify services
+        run: |
+          pg_isready -h localhost -p 5432 -U app -d app
+          curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow
 
       - name: Run flake8 linting
         run: |
