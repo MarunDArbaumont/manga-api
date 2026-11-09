@@ -13,7 +13,7 @@ from .models import Profile, Review, ReviewReaction
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .filters import ProfileFilter, ReviewFilter
+from .filters import ReviewFilter
 from .permissions import IsOwnerOrReadOnly, SignupThrottle
 from .throttles import LoginThrottle
 from mangas.models import Chapter

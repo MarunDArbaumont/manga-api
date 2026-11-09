@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     "corsheaders",
+    'django_elasticsearch_dsl',
 ]
 
 MIDDLEWARE = [
@@ -125,10 +126,10 @@ WSGI_APPLICATION = 'manga_api.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME") or os.environ.get("POSTGRES_DB", "app"),
-        "USER": os.environ.get("DB_USER") or os.environ.get("POSTGRES_USER", "app"),
-        "PASSWORD": os.environ.get("DB_PASSWORD") or os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "NAME": os.environ.get("POSTGRES_DB", "app"),
+        "USER": os.environ.get("POSTGRES_USER", "app"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+        "HOST": os.environ.get("DB_HOST", "database"),
         "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
