@@ -1,7 +1,7 @@
 """
 Signals for automatic Elasticsearch indexing.
 """
-from django.db.models.signals import post_save, post_delete, post_bulk_create, post_bulk_update, post_bulk_delete
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .documents import SerieDocument, AuthorDocument, ChapterDocument
 from .models import Serie, Author, Chapter
@@ -35,18 +35,3 @@ def update_chapter_index(sender, instance, **kwargs):
 def delete_chapter_index(sender, instance, **kwargs):
     """Delete Chapter from Elasticsearch when deleted."""
     ChapterDocument().delete(instance)
-
-@receiver(post_bulk_create, sender=Serie)
-def update_bulk_serie_index(sender, instances, **kwargs):
-    """Update multiple Series in Elasticsearch after bulk create."""
-    SerieDocument().update(instances)
-
-@receiver(post_bulk_update, sender=Serie)
-def update_bulk_serie_index(sender, instances, **kwargs):
-    """Update multiple Series in Elasticsearch after bulk update."""
-    SerieDocument().update(instances)
-
-@receiver(post_bulk_delete, sender=Serie)
-def delete_bulk_serie_index(sender, instances, **kwargs):
-    """Delete multiple Series from Elasticsearch after bulk delete."""
-    SerieDocument().delete(instances)
