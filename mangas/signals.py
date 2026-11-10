@@ -6,6 +6,10 @@ from django.dispatch import receiver
 from .documents import SerieDocument, AuthorDocument, ChapterDocument
 from .models import Serie, Author, Chapter
 
+import logging
+
+logger = logging.getLogger("accounts")
+
 @receiver(post_save, sender=Serie)
 def update_serie_index(sender, instance, **kwargs):
     """Update Serie in Elasticsearch when saved."""
@@ -16,8 +20,8 @@ def delete_serie_index(sender, instance, **kwargs):
     """Delete Serie from Elasticsearch when deleted."""
     try:
         SerieDocument().delete(instance.pk)
-    except Exception:
-        pass  # Silently fail if Elasticsearch is not available
+    except Exception as e:
+        logger.error(f"Failed to delete from ES: {e}")
 
 @receiver(post_save, sender=Author)
 def update_author_index(sender, instance, **kwargs):
@@ -29,8 +33,8 @@ def delete_author_index(sender, instance, **kwargs):
     """Delete Author from Elasticsearch when deleted."""
     try:
         AuthorDocument().delete(instance.pk)
-    except Exception:
-        pass  # Silently fail if Elasticsearch is not available
+    except Exception as e:
+        logger.error(f"Failed to delete from ES: {e}")
 
 @receiver(post_save, sender=Chapter)
 def update_chapter_index(sender, instance, **kwargs):
@@ -42,5 +46,5 @@ def delete_chapter_index(sender, instance, **kwargs):
     """Delete Chapter from Elasticsearch when deleted."""
     try:
         ChapterDocument().delete(instance.pk)
-    except Exception:
-        pass  # Silently fail if Elasticsearch is not available
+    except Exception as e:
+        logger.error(f"Failed to delete from ES: {e}")

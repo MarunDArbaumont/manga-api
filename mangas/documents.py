@@ -17,12 +17,10 @@ class SerieDocument(Document):
     genre = fields.KeywordField(attr='genre')
     first_published = fields.DateField(attr='first_published')
     last_published = fields.DateField(attr='last_published')
-    
-    # ManyToMany field - authors
-    authors = fields.ObjectField(
-        properties={
-            'id': fields.IntegerField(),
-            'name': fields.TextField(),
+    authors = fields.TextField(
+        attr='authors_indexing',
+        fields={
+            'raw': fields.KeywordField(),
         }
     )
     
@@ -74,12 +72,7 @@ class AuthorDocument(Document):
     death_date = fields.DateField(attr='death_date')
     
     # ManyToMany field - mangas (series)
-    mangas = fields.ObjectField(
-        properties={
-            'id': fields.IntegerField(),
-            'title': fields.TextField(),
-        }
-    )
+    mangas = fields.TextField(attr='mangas__title') 
 
     class Index:
         name = 'authors'
@@ -107,13 +100,7 @@ class ChapterDocument(Document):
         }
     )
     
-    # ForeignKey - manga
-    manga = fields.ObjectField(
-        properties={
-            'id': fields.IntegerField(),
-            'title': fields.TextField(),
-        }
-    )
+    manga = fields.TextField(attr='manga__title')
     
     first_published = fields.DateField(attr='first_published')
     

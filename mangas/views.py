@@ -1,6 +1,7 @@
+from django.db import models
 from django.db.models import Avg, Count, Prefetch
 from rest_framework import generics, filters, viewsets
-
+from django_filters.rest_framework import DjangoFilterBackend
 from .filters import AuthorFilter, ChapterFilter, SerieFilter
 from .models import Author, Chapter, Serie
 from .permissions import IsAdminOrReadOnly
@@ -12,7 +13,8 @@ from .serializers import (
     SerieSerializer,
     SingleSerieSerializer,
 )
-from django_filters.rest_framework import DjangoFilterBackend
+from .search.base import SearchView
+from .documents import SerieDocument
 
 class SerieView(generics.ListCreateAPIView):
     serializer_class = SerieSerializer
@@ -80,3 +82,44 @@ class ChapterViewSet(viewsets.ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ChapterWriteSerializer
         return ChapterSerializer
+
+class SeriesSearchView(SearchView):
+    index_name = 'series'
+    document_class = SerieDocument
+    serializer_class = SerieSerializer
+    fallback_queryset = Serie.objects.all()
+
+    def build_elasticsearch_query(self, query_params):
+        query = {
+            'query': {
+                'bool': {
+                    'must': []
+                }
+            }
+        }
+
+        search_term = query_params.get('q', '')
+        if search_term:
+            query['query']['bool']['must'].append({
+                'multi_match': {
+                    'query': search_term,
+                    'fields': ['title^3', 'description', 'genre'],
+                    'fuzziness': 'AUTO'
+                }
+            })
+
+        # Add filters
+        genre = query_params.get('genre')
+        if genre:
+            query['query']['bool']['must'].append({
+                'term': {'genres': genre}
+            })
+
+        # Add sorting
+        sort_by = query_params.get('sort', 'relevance')
+        if sort_by == 'rating':
+            query['sort'] = [{'average_rating': {'order': 'desc'}}]
+        elif sort_by == 'date':
+            query['sort'] = [{'publication_date': {'order': 'desc'}}]
+
+        return query

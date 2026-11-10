@@ -24,19 +24,24 @@ class Serie (models.Model):
     title = models.CharField(max_length=100)
     first_published = models.DateTimeField()
     last_published = models.DateTimeField(blank=True, null=True)
-    description = models.CharField()
+    description = models.CharField(max_length=500)
     cover = models.ImageField(blank=True, null=True, upload_to="series/%Y/%m/%d/")
     genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
     authors = models.ManyToManyField(Author, related_name="mangas")
 
     class Meta:
         ordering = ["title"]
+        db_table = "mangas_series"
 
     def __str__(self):
         return self.title
     
     def is_finished(self):
         return self.last_published is not None
+
+    def authors_indexing(self):
+        """Return a string of all author names for indexing"""
+        return ", ".join([author.name for author in self.authors.all()])
 
 class Chapter (models.Model):
     number = models.DecimalField(max_digits=5, decimal_places=1)
