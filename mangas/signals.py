@@ -14,7 +14,10 @@ def update_serie_index(sender, instance, **kwargs):
 @receiver(post_delete, sender=Serie)
 def delete_serie_index(sender, instance, **kwargs):
     """Delete Serie from Elasticsearch when deleted."""
-    SerieDocument().delete(instance)
+    try:
+        SerieDocument().delete(instance.pk)
+    except Exception:
+        pass  # Silently fail if Elasticsearch is not available
 
 @receiver(post_save, sender=Author)
 def update_author_index(sender, instance, **kwargs):
@@ -24,7 +27,10 @@ def update_author_index(sender, instance, **kwargs):
 @receiver(post_delete, sender=Author)
 def delete_author_index(sender, instance, **kwargs):
     """Delete Author from Elasticsearch when deleted."""
-    AuthorDocument().delete(instance)
+    try:
+        AuthorDocument().delete(instance.pk)
+    except Exception:
+        pass  # Silently fail if Elasticsearch is not available
 
 @receiver(post_save, sender=Chapter)
 def update_chapter_index(sender, instance, **kwargs):
@@ -34,4 +40,7 @@ def update_chapter_index(sender, instance, **kwargs):
 @receiver(post_delete, sender=Chapter)
 def delete_chapter_index(sender, instance, **kwargs):
     """Delete Chapter from Elasticsearch when deleted."""
-    ChapterDocument().delete(instance)
+    try:
+        ChapterDocument().delete(instance.pk)
+    except Exception:
+        pass  # Silently fail if Elasticsearch is not available

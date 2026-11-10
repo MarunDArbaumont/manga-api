@@ -19,7 +19,10 @@ def update_review_index(sender, instance, **kwargs):
 @receiver(post_delete, sender=Review)
 def delete_review_index(sender, instance, **kwargs):
     """Delete Review from Elasticsearch when deleted."""
-    ReviewDocument().delete(instance)
+    try:
+        ReviewDocument().delete(instance.pk)
+    except Exception:
+        pass  # Silently fail if Elasticsearch is not available
 
 @receiver(post_save, sender=Profile)
 def update_profile_index(sender, instance, **kwargs):
@@ -29,4 +32,7 @@ def update_profile_index(sender, instance, **kwargs):
 @receiver(post_delete, sender=Profile)
 def delete_profile_index(sender, instance, **kwargs):
     """Delete Profile from Elasticsearch when deleted."""
-    ProfileDocument().delete(instance)
+    try:
+        ProfileDocument().delete(instance.pk)
+    except Exception:
+        pass  # Silently fail if Elasticsearch is not available

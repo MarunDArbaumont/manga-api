@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db.models import Value
 from django.test import TestCase
@@ -197,29 +199,29 @@ class FilterOrderingTests(APITestCase):
         # Create authors
         self.author1 = Author.objects.create(
             name="Author A",
-            birth_day="2000-01-01",
+            birth_day=timezone.make_aware(datetime(2000, 1, 1)),
         )
         self.author2 = Author.objects.create(
             name="Author B",
-            birth_day="2000-02-01",
+            birth_day=timezone.make_aware(datetime(2000, 2, 1)),
         )
         
         # Create series with different properties
         self.serie1 = Serie.objects.create(
             title="Ongoing Serie",
-            first_published="2020-01-01",
+            first_published=timezone.make_aware(datetime(2020, 1, 1)),
             last_published=None,  # Not finished
             genre="shonen"
         )
         self.serie2 = Serie.objects.create(
             title="Finished Serie",
-            first_published="2019-01-01",
-            last_published="2020-01-01",  # Finished
+            first_published=timezone.make_aware(datetime(2019, 1, 1)),
+            last_published=timezone.make_aware(datetime(2020, 1, 1)),  # Finished
             genre="seinen"
         )
         self.serie3 = Serie.objects.create(
             title="Another Ongoing",
-            first_published="2021-01-01",
+            first_published=timezone.make_aware(datetime(2021, 1, 1)),
             last_published=None,
             genre="shonen"
         )
@@ -234,19 +236,19 @@ class FilterOrderingTests(APITestCase):
             number=1,
             name="Chapter 1",
             manga=self.serie1,
-            first_published="2020-01-01"
+            first_published=timezone.make_aware(datetime(2020, 1, 1))
         )
         self.chapter2 = Chapter.objects.create(
             number=2,
             name="Chapter 2",
             manga=self.serie1,
-            first_published="2020-02-01"
+            first_published=timezone.make_aware(datetime(2020, 2, 1))
         )
         self.chapter3 = Chapter.objects.create(
             number=1,
             name="Chapter 1",
             manga=self.serie2,
-            first_published="2019-01-01"
+            first_published=timezone.make_aware(datetime(2019, 1, 1))
         )
 
     def test_filter_series_by_ongoing(self):
@@ -337,5 +339,5 @@ class FilterOrderingTests(APITestCase):
                 number=1,  # Duplicate of chapter1
                 name="Duplicate Chapter",
                 manga=self.serie1,
-                first_published="2020-03-01"
+                first_published=timezone.make_aware(datetime(2020, 3, 1))
             )

@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
 
@@ -244,8 +247,8 @@ class AuthorizationTests(APITestCase):
 
         user1 = User.objects.create_user(username="user1", email="user1@test.com", password="pass123")
         user2 = User.objects.create_user(username="user2", email="user2@test.com", password="pass123")
-        serie = Serie.objects.create(title="Test Serie", first_published="2020-01-01")
-        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published="2020-01-01")
+        serie = Serie.objects.create(title="Test Serie", first_published=timezone.make_aware(datetime(2020, 1, 1)))
+        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published=timezone.make_aware(datetime(2020, 1, 1)))
 
         review1 = Review.objects.create(user=user1, rating=5, chapter=chapter, description="Great!")
         review2 = Review.objects.create(user=user2, rating=4, chapter=chapter, description="Good")
@@ -302,8 +305,8 @@ class AuthorizationTests(APITestCase):
         profile1 = user1.profile
         profile2 = user2.profile
 
-        serie = Serie.objects.create(title="Test Serie", first_published="2020-01-01")
-        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published="2020-01-01")
+        serie = Serie.objects.create(title="Test Serie", first_published=timezone.make_aware(datetime(2020, 1, 1)))
+        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published=timezone.make_aware(datetime(2020, 1, 1)))
 
         # User1 adds manga to their own collection - should succeed
         self.client.force_authenticate(user=user1)
@@ -357,8 +360,8 @@ class AuthorizationTests(APITestCase):
         user1 = User.objects.create_user(username="user1", email="user1@test.com", password="pass123")
         user2 = User.objects.create_user(username="user2", email="user2@test.com", password="pass123")
 
-        serie = Serie.objects.create(title="Test Serie", first_published="2020-01-01")
-        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published="2020-01-01")
+        serie = Serie.objects.create(title="Test Serie", first_published=timezone.make_aware(datetime(2020, 1, 1)))
+        chapter = Chapter.objects.create(number=1, name="Chapter 1", manga=serie, first_published=timezone.make_aware(datetime(2020, 1, 1)))
         review = Review.objects.create(user=user1, rating=5, chapter=chapter, description="Great!")
 
         # User1 adds like to review - should succeed
@@ -456,32 +459,32 @@ class ReviewFilterOrderingPaginationTests(APITestCase):
         # Create series and chapters
         self.serie1 = Serie.objects.create(
             title="Test Serie",
-            first_published="2020-01-01",
+            first_published=timezone.make_aware(datetime(2020, 1, 1)),
         )
         self.chapter1 = Chapter.objects.create(
             number=1,
             name="Chapter 1",
             manga=self.serie1,
-            first_published="2020-01-01"
+            first_published=timezone.make_aware(datetime(2020, 1, 1))
         )
         self.chapter2 = Chapter.objects.create(
             number=2,
             name="Chapter 2",
             manga=self.serie1,
-            first_published="2020-02-01"
+            first_published=timezone.make_aware(datetime(2020, 2, 1))
         )
         self.chapter3 = Chapter.objects.create(
             number=3,
             name="Chapter 3",
             manga=self.serie1,
-            first_published="2020-03-01"
+            first_published=timezone.make_aware(datetime(2020, 3, 1))
         )
         # Additional chapter for pagination test
         self.chapter4 = Chapter.objects.create(
             number=4,
             name="Chapter 4",
             manga=self.serie1,
-            first_published="2020-04-01"
+            first_published=timezone.make_aware(datetime(2020, 4, 1))
         )
         
         # Create reviews - ensure unique user+chapter combinations
@@ -546,7 +549,7 @@ class ReviewFilterOrderingPaginationTests(APITestCase):
                 number=10 + i,
                 name=f"Pagination Chapter {i}",
                 manga=self.serie1,
-                first_published=f"2020-0{5+i}-01"
+                first_published=timezone.make_aware(datetime(2020, 5+i, 1))
             )
             Review.objects.create(
                 user=self.user1,
