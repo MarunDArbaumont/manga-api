@@ -72,11 +72,24 @@ class SearchView(APIView):
         # Apply basic filtering if query exists
         search_query = query_params.get('q', '')
         if search_query:
-            # Simple fallback: filter by title/name containing query
-            queryset = queryset.filter(
-                models.Q(title__icontains=search_query) |
-                models.Q(description__icontains=search_query)
-            )
+        # Try common field names
+            field_options = []
+
+            # Check if model has these fields
+            model = self.fallback_queryset.model
+            if hasattr(model, 'title'):
+                field_options.append('title__icontains')
+            if hasattr(model, 'name'):
+                field_options.append('name__icontains')
+            if hasattr(model, 'description'):
+                field_options.append('description__icontains')
+            if hasattr(model, 'number'):
+                field_options.append('number__icontains')
+
+            if field_options:
+                q_objects = [models.Q(**{field: search_query}) for field in field_options]
+                queryset = queryset.filter(*q_objects)
+            
         return queryset[:self.page_size]
 
     def get(self, request, *args, **kwargs):
@@ -89,12 +102,15 @@ class SearchView(APIView):
 
         # Check if ES is available
         if self._is_elasticsearch_available(es_client):
+            logger.debug("ES is avaible")
             es_results = self.execute_elasticsearch_query(es_client, es_query)
+            logger.debug(f"ES Results: {es_results}")
 
             if es_results is not None:
                 return self.format_elasticsearch_response(es_results)
 
         # Fallback to database
+        logger.debug(f"ES Results: {es_results}")
         logger.warning("Falling back to database query for search")
         fallback_results = self.execute_fallback_query(query_params)
         serializer = self.serializer_class(fallback_results, many=True)

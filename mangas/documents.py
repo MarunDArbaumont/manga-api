@@ -71,8 +71,7 @@ class AuthorDocument(Document):
     birth_day = fields.DateField(attr='birth_day')
     death_date = fields.DateField(attr='death_date')
     
-    # ManyToMany field - mangas (series)
-    mangas = fields.TextField(attr='mangas__title') 
+    manga_titles = fields.TextField()
 
     class Index:
         name = 'authors'
@@ -87,6 +86,12 @@ class AuthorDocument(Document):
         
         def get_queryset(self):
             return Author.objects.prefetch_related('mangas')
+    
+    def prepare(self, instance):
+        data = super().prepare(instance)
+        if hasattr(instance, 'mangas') and instance.mangas.exists():
+            data['manga_titles'] = ', '.join([m.title for m in instance.mangas.all()])
+        return data
 
 
 @registry.register_document
@@ -100,8 +105,8 @@ class ChapterDocument(Document):
         }
     )
     
-    manga = fields.TextField(attr='manga__title')
-    
+    manga_title = fields.TextField()
+
     first_published = fields.DateField(attr='first_published')
     
     # Annotated fields
@@ -121,4 +126,10 @@ class ChapterDocument(Document):
         
         def get_queryset(self):
             from .querysets import chapters_with_ratings
-            return chapters_with_ratings()
+            return chapters_with_ratings().select_related('manga')
+    
+    def prepare(self, instance):
+        data = super().prepare(instance)
+        if hasattr(instance, 'manga') and instance.manga:
+            data['manga_title'] = instance.manga.title
+        return data

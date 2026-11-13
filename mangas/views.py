@@ -14,7 +14,7 @@ from .serializers import (
     SingleSerieSerializer,
 )
 from .search.base import SearchView
-from .documents import SerieDocument
+from .documents import SerieDocument, AuthorDocument, ChapterDocument
 
 class SerieView(generics.ListCreateAPIView):
     serializer_class = SerieSerializer
@@ -100,19 +100,30 @@ class SeriesSearchView(SearchView):
 
         search_term = query_params.get('q', '')
         if search_term:
-            query['query']['bool']['must'].append({
-                'multi_match': {
-                    'query': search_term,
-                    'fields': ['title^3', 'description', 'genre'],
-                    'fuzziness': 'AUTO'
+            query['query']['bool']['should'] = [
+                {
+                    'match': {
+                        'title': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
+                },
+                {
+                    'match': {
+                        'authors': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
                 }
-            })
+            ]
 
         # Add filters
         genre = query_params.get('genre')
         if genre:
             query['query']['bool']['must'].append({
-                'term': {'genres': genre}
+                'term': {'genre': genre}
             })
 
         # Add sorting
@@ -120,6 +131,101 @@ class SeriesSearchView(SearchView):
         if sort_by == 'rating':
             query['sort'] = [{'average_rating': {'order': 'desc'}}]
         elif sort_by == 'date':
-            query['sort'] = [{'publication_date': {'order': 'desc'}}]
+            query['sort'] = [{'first_published': {'order': 'desc'}}]
+
+        return query
+
+class AuthorsSearchView(SearchView):
+    index_name = 'authors'
+    document_class = AuthorDocument
+    serializer_class = AuthorSerializer
+    fallback_queryset = Author.objects.all()
+
+    def build_elasticsearch_query(self, query_params):
+        query = {
+            'query': {
+                'bool': {
+                    'must': []
+                }
+            }
+        }
+
+        search_term = query_params.get('q', '')
+        if search_term:
+            query['query']['bool']['should'] = [
+                {
+                    'match': {
+                        'name': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
+                },
+                {
+                    'match': {
+                        'manga_titles': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
+                }
+            ]
+
+        sort_by = query_params.get('sort', 'relevance')
+        if sort_by == 'date':
+            query['sort'] = [{'birth_day': {'order': 'desc'}}]
+
+        return query
+
+class ChaptersSearchView(SearchView):
+    index_name = 'chapters'
+    document_class = ChapterDocument
+    serializer_class = ChapterSerializer
+    fallback_queryset = Chapter.objects.all()
+
+    def build_elasticsearch_query(self, query_params):
+        query = {
+            'query': {
+                'bool': {
+                    'must': []
+                }
+            }
+        }
+
+        search_term = query_params.get('q', '')
+        if search_term:
+            query['query']['bool']['should'] = [
+                {
+                    'match': {
+                        'name': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
+                },
+                {
+                    'match': {
+                        'manga_title': {
+                            'query': search_term,
+                            'fuzziness': 'AUTO'
+                        }
+                    }
+                }
+            ]
+            try:
+                float(search_term)
+                query['query']['bool']['should'].append({
+                    'term': {
+                        'number': float(search_term)
+                    }
+                })
+            except ValueError:
+                pass
+
+            query['query']['bool']['minimum_should_match'] = 1
+
+        sort_by = query_params.get('sort', 'relevance')
+        if sort_by == 'date':
+            query['sort'] = [{'first_published': {'order': 'desc'}}]
 
         return query

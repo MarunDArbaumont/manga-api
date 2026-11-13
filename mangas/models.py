@@ -2,8 +2,8 @@ from django.db import models
 
 class Author (models.Model):
     name = models.CharField(max_length=100)
-    birth_day = models.DateTimeField()
-    death_date = models.DateTimeField(blank=True, null=True)
+    birth_day = models.DateField()
+    death_date = models.DateField(blank=True, null=True)
     image = models.ImageField(blank=True, null=True, upload_to="authors/%Y/%m/%d/")
 
     class Meta:
@@ -22,8 +22,8 @@ class Serie (models.Model):
         ("shojo", "shojo"),
     )
     title = models.CharField(max_length=100)
-    first_published = models.DateTimeField()
-    last_published = models.DateTimeField(blank=True, null=True)
+    first_published = models.DateField()
+    last_published = models.DateField(blank=True, null=True)
     description = models.CharField(max_length=500)
     cover = models.ImageField(blank=True, null=True, upload_to="series/%Y/%m/%d/")
     genre = models.CharField(blank=True, null=True, choices=MANGA_GENRE_CHOICES)
@@ -47,7 +47,7 @@ class Chapter (models.Model):
     number = models.DecimalField(max_digits=5, decimal_places=1)
     name = models.CharField(max_length=100)
     manga = models.ForeignKey(Serie, on_delete=models.CASCADE, related_name="chapters")
-    first_published = models.DateTimeField()
+    first_published = models.DateField()
 
     class Meta:
         constraints = [

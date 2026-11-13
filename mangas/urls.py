@@ -1,5 +1,14 @@
 from django.urls import path, include
-from .views import SerieView, AuthorView, ChapterViewSet, SerieByIdView, AuthorByIdView, SeriesSearchView
+from .views import (
+    SerieView,
+    AuthorView,
+    ChapterViewSet,
+    SerieByIdView,
+    AuthorByIdView,
+    SeriesSearchView,
+    AuthorsSearchView,
+    ChaptersSearchView,
+    )
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -12,4 +21,6 @@ urlpatterns = [
     path("authors/", AuthorView.as_view(), name='authors-list'),
     path("authors/<int:pk>/", AuthorByIdView.as_view()),
     path("search/series/", SeriesSearchView.as_view()),
+    path("search/authors/", AuthorsSearchView.as_view()),
+    path("search/chapters/", ChaptersSearchView.as_view())
 ]
